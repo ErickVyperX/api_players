@@ -1,8 +1,9 @@
 package io.erickdev.api_players.servicelayer;
 
+import io.erickdev.api_players.Exceptions.PlayerSuccessException;
 import io.erickdev.api_players.datalayer.Player;
+import io.erickdev.api_players.Exceptions.PlayerNotFoundException;
 import io.erickdev.api_players.datalayer.PlayerRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -29,25 +31,16 @@ public class PlayerService {
 
     public Player getPlayerById(int id) {
         return playerRepository.findById(id).
-                orElseThrow(() -> new EntityNotFoundException(String.format("Player with %d not found!", id)));
+                orElseThrow(() -> new PlayerNotFoundException(String.format("Player with ID: %d not found!", id)));
     }
 
     public void insertPlayer(Player player) {
-        playerRepository.save(player);
-    }
-
-    public void updatePlayer(int id, Player player) {
-        if (playerRepository.findById(id).isPresent()) {
-            Player playerFound = playerRepository.findById(id).get();
-            playerFound.setName(player.getName());
-            playerFound.setNationality(player.getNationality());
-            playerFound.setBirth_date(player.getBirth_date());
-            playerFound.setTitles(player.getTitles());
-            playerRepository.save(playerFound);
+        if (Objects.equals(playerRepository.save(player).getName(), player.getName())) {
+            throw new PlayerSuccessException("Player added");
         }
     }
 
-    public void updateOnlyFields(int id, Map<String, Object> partialPlayer) {
+    public Player updatePlayerUnknownFields(int id, Map<String, Object> partialPlayer) {
         Optional<Player> player = playerRepository.findById(id);
         if (player.isPresent()) {
             partialPlayer.forEach( (key, value) -> {
@@ -58,14 +51,24 @@ public class PlayerService {
             });
             playerRepository.save(player.get());
         }
+        return playerRepository.findById(id).
+                orElseThrow(() -> new PlayerNotFoundException(String.format("Player with ID: %d not found!", id)));
     }
 
     @Transactional
     public void updateTitles(int id, int titles) {
-        playerRepository.updateTitles(id, titles);
+        if (playerRepository.findById(id).isPresent()) {
+            playerRepository.updateTitles(id, titles);
+        } else {
+            throw new PlayerNotFoundException(String.format("Player with ID: %d not found!", id));
+        }
     }
 
     public void deletePlayer(int id) {
-        playerRepository.deleteById(id);
+        if (playerRepository.findById(id).isPresent()) {
+            playerRepository.deleteById(id);
+        } else {
+            throw new PlayerNotFoundException(String.format("Player with ID: %d not found!", id));
+        }
     }
 }

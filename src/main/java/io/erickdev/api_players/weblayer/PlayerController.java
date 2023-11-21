@@ -39,14 +39,9 @@ public class PlayerController {
         playerService.insertPlayer(player);
     }
 
-    @PutMapping("/players/{id}")
-    public void updatePlayer(@PathVariable int id, @RequestBody Player player) {
-        playerService.updatePlayer(id, player);
-    }
-
     @PatchMapping("/players/{id}")
-    public void updateOnlyFields(@PathVariable int id, @RequestBody Map<String, Object> partialPlayer) {
-        playerService.updateOnlyFields(id, partialPlayer);
+    public Player updatePlayerUnknownFields(@PathVariable int id, @RequestBody Map<String, Object> partialPlayer) {
+        return playerService.updatePlayerUnknownFields(id, partialPlayer);
     }
 
     @PatchMapping("/players/{id}/titles")

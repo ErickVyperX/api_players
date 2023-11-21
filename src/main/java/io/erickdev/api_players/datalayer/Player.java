@@ -1,11 +1,8 @@
 package io.erickdev.api_players.datalayer;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.StringJoiner;
 
 @Entity
